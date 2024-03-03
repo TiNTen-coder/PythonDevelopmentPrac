@@ -50,18 +50,24 @@ while True:
     com = input('> ').split()
     match com[0]:
         case "up" | "down" | "left" | "right":
-            player.move(com[0])
-        case "addmon":
-            x = com[1]
-            y = com[2]
-            phrase = com[3]
-            if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9:
-                x = int(x)
-                y = int(y)
-                tmp = Monster()
-                tmp.addmonster(x, y, phrase)
-                field.matrix[x][y] = tmp
-            else:
+            if len(com) != 1:
                 print('Invalid arguments')
+            else:
+                player.move(com[0])
+        case "addmon":
+            if len(com) != 4:
+                print('Invalid arguments')
+            else:
+                x = com[1]
+                y = com[2]
+                phrase = com[3]
+                if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9:
+                    x = int(x)
+                    y = int(y)
+                    tmp = Monster()
+                    tmp.addmonster(x, y, phrase)
+                    field.matrix[x][y] = tmp
+                else:
+                    print('Invalid arguments')
         case _:
             print('Invalid commands')

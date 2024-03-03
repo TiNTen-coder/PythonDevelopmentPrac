@@ -20,7 +20,7 @@ class Player:
                 self.x = (self.x - 1) % 10
             case "right":
                 self.x = (self.x + 1) % 10
-        print(f'Moved to ({self.x} {self.y})')
+        print(f'Moved to ({self.x}, {self.y})')
         self.encounter(self.x, self.y)
 
     def encounter(self, x, y):

@@ -47,7 +47,10 @@ class Monster:
 field = Field()
 player = Player()
 while True:
-    com = input('> ').split()
+    try:
+        com = input().split()
+    except Exception:
+        return
     match com[0]:
         case "up" | "down" | "left" | "right":
             if len(com) != 1:

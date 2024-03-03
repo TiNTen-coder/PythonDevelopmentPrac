@@ -1,5 +1,4 @@
 import cowsay
-from pprint import pprint
 
 
 class Field:
@@ -24,7 +23,6 @@ class Player:
         self.encounter(self.x, self.y)
 
     def encounter(self, x, y):
-        pprint(Field.matrix)
         if Field.matrix[x][y] is not None:
             print(cowsay.cowsay(Field.matrix[x][y].phrase))
 
@@ -40,10 +38,8 @@ class Monster:
                 self.x = x
                 self.y = y
                 self.phrase = hello
-                # Field.matrix[x][y] = Monster(x, y, hello)
                 print(f'Added monster to ({x}, {y}) saying {hello}')
             case _:
-                # Field.matrix[x][y] = Monster(x, y, hello)
                 self.phrase = hello
                 print('Replaced the old monster')
 

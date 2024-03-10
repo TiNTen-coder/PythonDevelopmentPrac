@@ -24,10 +24,11 @@ class Player:
 
     def encounter(self, x, y):
         if Field.matrix[x][y] is not None:
-            print(cowsay.cowsay(Field.matrix[x][y].phrase))
+            print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=name))
 
 
 class Monster:
+    name = None
     x = None
     y = None
     phrase = None
@@ -35,6 +36,7 @@ class Monster:
     def addmonster(self, x, y, hello):
         match Field.matrix[x][y]:
             case None:
+                self.name = name
                 self.x = x
                 self.y = y
                 self.phrase = hello
@@ -50,7 +52,7 @@ while True:
     try:
         com = input().split()
     except Exception:
-        return
+        break
     match com[0]:
         case "up" | "down" | "left" | "right":
             if len(com) != 1:
@@ -58,12 +60,13 @@ while True:
             else:
                 player.move(com[0])
         case "addmon":
-            if len(com) != 4:
+            if len(com) != 5:
                 print('Invalid arguments')
             else:
-                x = com[1]
-                y = com[2]
-                phrase = com[3]
+                name = com[1]
+                x = com[2]
+                y = com[3]
+                phrase = com[4]
                 if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9:
                     x = int(x)
                     y = int(y)

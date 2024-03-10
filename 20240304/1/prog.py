@@ -69,6 +69,7 @@ class Monster:
                 print('Replaced the old monster')
 
 
+print("<<< Welcome to Python-MUD 0.1 >>>")
 field = Field()
 player = Player()
 while True:

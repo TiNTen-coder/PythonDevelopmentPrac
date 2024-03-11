@@ -1,4 +1,5 @@
 import cowsay
+import io
 
 
 class Field:
@@ -24,7 +25,25 @@ class Player:
 
     def encounter(self, x, y):
         if Field.matrix[x][y] is not None:
-            print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=name))
+            if Field.matrix[x][y].name == 'jgsbat':
+                custom_monster = cowsay.read_dot_cow(io.StringIO("""
+                $the_cow = <<EOC;
+                         $thoughts
+                          $thoughts
+                    ,_                    _,
+                    ) '-._  ,_    _,  _.-' (
+                    )  _.-'.|\\--//|.'-._  (
+                     )'   .'\/o\/o\/'.   `(
+                      ) .' . \====/ . '. (
+                       )  / <<    >> \  (
+                        '-._/``  ``\_.-'
+                  jgs     __\\'--'//__
+                         (((""`  `"")))
+                EOC
+                """))
+                print(cowsay.cowsay(Field.matrix[x][y].phrase, cowfile=custom_monster))
+            else:
+                print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=name))
 
 
 class Monster:
@@ -36,11 +55,15 @@ class Monster:
     def addmonster(self, x, y, hello):
         match Field.matrix[x][y]:
             case None:
-                self.name = name
-                self.x = x
-                self.y = y
-                self.phrase = hello
-                print(f'Added monster to ({x}, {y}) saying {hello}')
+                if name in cowsay.list_cows() or name == 'jgsbat':
+                    self.name = name
+                    self.x = x
+                    self.y = y
+                    self.phrase = hello
+                    print(f'Added monster to ({x}, {y}) saying {hello}')
+                else:
+                    print('Cannot add unknown monster')
+                    raise NameError
             case _:
                 self.phrase = hello
                 print('Replaced the old monster')
@@ -70,9 +93,12 @@ while True:
                 if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9:
                     x = int(x)
                     y = int(y)
-                    tmp = Monster()
-                    tmp.addmonster(x, y, phrase)
-                    field.matrix[x][y] = tmp
+                    try:
+                        tmp = Monster()
+                        tmp.addmonster(x, y, phrase)
+                        field.matrix[x][y] = tmp
+                    except NameError:
+                        pass
                 else:
                     print('Invalid arguments')
         case _:

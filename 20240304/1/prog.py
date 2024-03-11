@@ -47,6 +47,7 @@ class Player:
                 print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=name))
 
 
+
 class Monster:
     name = None
     x = None
@@ -67,7 +68,7 @@ class Monster:
                 else:
                     print('Cannot add unknown monster')
                     raise NameError
-                case _:
+            case _:
                 self.phrase = hello
                 self.hitpoints = hitpoints
                 print('Replaced the old monster')
@@ -91,14 +92,14 @@ while True:
             else:
                 player.move(com[0])
         case "addmon":
-            if len(com) != 9 or 'coord' not in com or 'hello' not in com or 'hp' not in com:
+            if len(com) != 9 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
                 print('Invalid arguments')
             else:
                 name = com[1]
-                x = com[com.find('coord') + 1]
-                y = com[com.find('coord') + 2]
-                phrase = com[com.find('hello') + 1]
-                hp = com[com.find('hp') + 1]
+                x = com[com.index('coords') + 1]
+                y = com[com.index('coords') + 2]
+                phrase = com[com.index('hello') + 1]
+                hp = com[com.index('hp') + 1]
                 if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9 and hp.isdigit():
                     x = int(x)
                     y = int(y)

@@ -1,6 +1,7 @@
 import cowsay
 import io
-
+import shlex
+import sys
 
 class Field:
     matrix = [[None for i in range(10)] for j in range(10)]
@@ -51,8 +52,9 @@ class Monster:
     x = None
     y = None
     phrase = None
+    hitpoints = None
 
-    def addmonster(self, x, y, hello):
+    def addmonster(self, x, y, hello, hitpoints):
         match Field.matrix[x][y]:
             case None:
                 if name in cowsay.list_cows() or name == 'jgsbat':
@@ -60,12 +62,14 @@ class Monster:
                     self.x = x
                     self.y = y
                     self.phrase = hello
+                    self.hitpoints = hitpoints
                     print(f'Added monster to ({x}, {y}) saying {hello}')
                 else:
                     print('Cannot add unknown monster')
                     raise NameError
-            case _:
+                case _:
                 self.phrase = hello
+                self.hitpoints = hitpoints
                 print('Replaced the old monster')
 
 
@@ -74,7 +78,10 @@ field = Field()
 player = Player()
 while True:
     try:
-        com = input().split()
+        com = shlex.split(sys.stdin.readline())
+    except ValueError:
+        print('Invalid arguments')
+        break
     except Exception:
         break
     match com[0]:
@@ -84,19 +91,21 @@ while True:
             else:
                 player.move(com[0])
         case "addmon":
-            if len(com) != 5:
+            if len(com) != 9 or 'coord' not in com or 'hello' not in com or 'hp' not in com:
                 print('Invalid arguments')
             else:
                 name = com[1]
-                x = com[2]
-                y = com[3]
-                phrase = com[4]
-                if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9:
+                x = com[com.find('coord') + 1]
+                y = com[com.find('coord') + 2]
+                phrase = com[com.find('hello') + 1]
+                hp = com[com.find('hp') + 1]
+                if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9 and hp.isdigit():
                     x = int(x)
                     y = int(y)
+                    hp = int(hp)
                     try:
                         tmp = Monster()
-                        tmp.addmonster(x, y, phrase)
+                        tmp.addmonster(x, y, phrase, hp)
                         field.matrix[x][y] = tmp
                     except NameError:
                         pass

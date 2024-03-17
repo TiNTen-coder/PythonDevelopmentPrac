@@ -3,6 +3,14 @@ import io
 import shlex
 import sys
 import cmd
+import readline
+import rlcompleter
+
+WEAPON_TOOLS = {
+    'sword': 10,
+    'spear': 15,
+    'axe': 20
+}
 
 class CommandLine(cmd.Cmd):
     prompt = '>>> '
@@ -35,9 +43,24 @@ class CommandLine(cmd.Cmd):
         player.move('right')
     
     def do_attack(self, args):
-        if args:
-            print('Alert: Attack command doesnt support the positional arguments')
-        player.attack()
+        try:
+            args = shlex.split(args)
+        except ValueError:
+            print('Invalid arguments')
+            return True
+        except Exception:
+            return True
+        if len(args) == 2 and 'with' in args:
+            player.attack(args[1])
+        elif not args:
+            player.attack('sword')
+        else:
+            print('Invalid arguments')
+    
+    def complete_attack(self, text, line, begidx, endidx):
+        args = shlex.split(line[:begidx], False, False)
+        if args[-1] == 'with':
+            return [c for c in WEAPON_TOOLS if c.startswith(text)]
 
     def do_addmon(self, com):
         try:
@@ -67,6 +90,15 @@ class CommandLine(cmd.Cmd):
                     pass
             else:
                 print('Invalid arguments')
+    
+    def complete_addmon(self, text, line, begidx, endidx):
+        args = shlex.split(line[:begidx])
+        if args[-1] == 'addmon':
+            return [c for c in cowsay.list_cows() if c.startswith(text)]
+        elif args[-1] in cowsay.list_cows():
+            return [c for c in ['coords', 'hello', 'hp'] if c.startswith(text)]
+        elif args[-1] == 'coords':
+            return [c for c in map(lambda x: str(x), range(10)) if c.startswith(text)]
 
 class Field:
     matrix = [[None for i in range(10)] for j in range(10)]
@@ -75,7 +107,7 @@ class Field:
 class Player:
     x = 0
     y = 0
-
+    
     def move(self, flag):
         match flag:
             case "up":
@@ -111,12 +143,15 @@ class Player:
             else:
                 print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=Field.matrix[x][y].name))
 
-    def attack(self):
+    def attack(self, weapon_name):
+        if weapon_name not in WEAPON_TOOLS.keys():
+            print('Unknown weapon')
+            return
         if Field.matrix[self.x][self.y] is None:
             print('No monster here')
         else:
-            print(f'Attacked {Field.matrix[self.x][self.y].name}, damage {max(Field.matrix[self.x][self.y].hitpoints - 10, 0)} hp')
-            Field.matrix[self.x][self.y].hitpoints = max(Field.matrix[self.x][self.y].hitpoints - 10, 0)
+            print(f'Attacked {Field.matrix[self.x][self.y].name}, damage {min(WEAPON_TOOLS[weapon_name], Field.matrix[self.x][self.y].hitpoints)} hp')
+            Field.matrix[self.x][self.y].hitpoints = max(Field.matrix[self.x][self.y].hitpoints - WEAPON_TOOLS[weapon_name], 0)
             if not Field.matrix[self.x][self.y].hitpoints:
                 print(f'{Field.matrix[self.x][self.y].name} died')
                 Field.matrix[self.x][self.y] = None
@@ -151,5 +186,9 @@ class Monster:
 if __name__ == '__main__':
     field = Field()
     player = Player()
+    if 'libedit' in readline.__doc__:
+        readline.parse_and_bind("bind ^I rl_complete")
+    else:
+        readline.parse_and_bind("tab: complete")
     CommandLine().cmdloop()
    

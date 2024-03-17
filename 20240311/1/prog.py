@@ -33,6 +33,11 @@ class CommandLine(cmd.Cmd):
         if com:
             print('Alert: Move commands dont support the positional arguments')
         player.move('right')
+    
+    def do_attack(self, args):
+        if args:
+            print('Alert: Attack command doesnt support the positional arguments')
+        player.attack()
 
     def do_addmon(self, com):
         try:
@@ -42,7 +47,6 @@ class CommandLine(cmd.Cmd):
             return True
         except Exception:
             return True
-        print(com)
         if len(com) != 8 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
             print('Invalid arguments')
         else:
@@ -63,7 +67,6 @@ class CommandLine(cmd.Cmd):
                     pass
             else:
                 print('Invalid arguments')
-        print(Field.matrix)
 
 class Field:
     matrix = [[None for i in range(10)] for j in range(10)]
@@ -108,7 +111,17 @@ class Player:
             else:
                 print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=Field.matrix[x][y].name))
 
-
+    def attack(self):
+        if Field.matrix[self.x][self.y] is None:
+            print('No monster here')
+        else:
+            print(f'Attacked {Field.matrix[self.x][self.y].name}, damage {max(Field.matrix[self.x][self.y].hitpoints - 10, 0)} hp')
+            Field.matrix[self.x][self.y].hitpoints = max(Field.matrix[self.x][self.y].hitpoints - 10, 0)
+            if not Field.matrix[self.x][self.y].hitpoints:
+                print(f'{Field.matrix[self.x][self.y].name} died')
+                Field.matrix[self.x][self.y] = None
+            else:
+                print(f'{Field.matrix[self.x][self.y].name} now has {Field.matrix[self.x][self.y].hitpoints}')
 
 class Monster:
     name = None

@@ -10,33 +10,39 @@ class CommandLine(cmd.Cmd):
     
     def do_default(self):
         print("Invalid arguments")
-        
+    
+    def do_EOF(self, args):
+        return True
+
     def do_up(self, com):
-        if len(com) != 1:
-            print('Invalid arguments')
-        else:
-            player.move(com[0])
+        if com:
+            print('Alert: Move commands dont support the positional arguments')
+        player.move('up')
 
     def do_down(self, com):
-        if len(com) != 1:
-            print('Invalid arguments')
-        else:
-            player.move(com[0])
+        if com:
+            print('Alert: Move commands dont support the positional arguments')
+        player.move('down')
 
     def do_left(self, com):
-        if len(com) != 1:
-            print('Invalid arguments')
-        else:
-            player.move(com[0])
+        if com:
+            print('Alert: Move commands dont support the positional arguments')
+        player.move('left')
 
     def do_right(self, com):
-        if len(com) != 1:
-            print('Invalid arguments')
-        else:
-            player.move(com[0])
+        if com:
+            print('Alert: Move commands dont support the positional arguments')
+        player.move('right')
 
     def do_addmon(self, com):
-        if len(com) != 9 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
+        try:
+            com = shlex.split(com)
+        except ValueError:
+            print('Invalid arguments')
+            break
+        except Exception:
+            break
+        if len(com) != 8 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
             print('Invalid arguments')
         else:
             name = com[1]
@@ -130,5 +136,5 @@ class Monster:
 if __name__ == '__main__':
     field = Field()
     player = Player()
-    
+    CommandLine().cmdloop()
    

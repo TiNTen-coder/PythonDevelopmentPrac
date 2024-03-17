@@ -3,6 +3,10 @@ import io
 import shlex
 import sys
 import cmd
+import readline
+import rlcompleter
+
+MONSTERS = set(cowsay.list_cows()) | set(['jgsbat'])
 
 class CommandLine(cmd.Cmd):
     prompt = '>>> '
@@ -35,9 +39,22 @@ class CommandLine(cmd.Cmd):
         player.move('right')
     
     def do_attack(self, args):
-        if args:
-            print('Alert: Attack command doesnt support the positional arguments')
-        player.attack()
+        try:
+            args = shlex.split(args)
+        except ValueError:
+            print('Invalid arguments')
+            return True
+        except Exception:
+            return True
+        if len(args) != 1 or args[0] not in MONSTERS:
+            print('Invalid arguments')
+        else:
+            player.attack(args[0])
+    
+    def complete_attack(self, text, line, begidx, endidx):
+        args = shlex.split(line[:begidx], False, False)
+        if args[-1] == 'attack':
+            return [c for c in MONSTERS if c.startswith(text)]
 
     def do_addmon(self, com):
         try:
@@ -111,11 +128,11 @@ class Player:
             else:
                 print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=Field.matrix[x][y].name))
 
-    def attack(self):
-        if Field.matrix[self.x][self.y] is None:
-            print('No monster here')
+    def attack(self, monster_name):
+        if Field.matrix[self.x][self.y].name != monster_name:
+            print(f'No {monster_name} here')
         else:
-            print(f'Attacked {Field.matrix[self.x][self.y].name}, damage {max(Field.matrix[self.x][self.y].hitpoints - 10, 0)} hp')
+            print(f'Attacked {Field.matrix[self.x][self.y].name}, damage {min(Field.matrix[self.x][self.y].hitpoints, 10)} hp')
             Field.matrix[self.x][self.y].hitpoints = max(Field.matrix[self.x][self.y].hitpoints - 10, 0)
             if not Field.matrix[self.x][self.y].hitpoints:
                 print(f'{Field.matrix[self.x][self.y].name} died')
@@ -151,5 +168,9 @@ class Monster:
 if __name__ == '__main__':
     field = Field()
     player = Player()
+    if 'libedit' in readline.__doc__:
+        readline.parse_and_bind("bind ^I rl_complete")
+    else:
+        readline.parse_and_bind("tab: complete")
     CommandLine().cmdloop()
    

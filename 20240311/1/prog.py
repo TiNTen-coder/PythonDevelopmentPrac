@@ -98,8 +98,8 @@ class CommandLine(cmd.Cmd):
     def complete_addmon(self, text, line, begidx, endidx):
         args = shlex.split(line[:begidx])
         if args[-1] == 'addmon':
-            return [c for c in cowsay.list_cows() if c.startswith(text)]
-        elif args[-1] in cowsay.list_cows():
+            return [c for c in MONSTERS if c.startswith(text)]
+        elif args[-1] in MONSTERS:
             return [c for c in ['coords', 'hello', 'hp'] if c.startswith(text)]
         elif args[-1] == 'coords':
             return [c for c in map(lambda x: str(x), range(10)) if c.startswith(text)]
@@ -172,7 +172,7 @@ class Monster:
     def addmonster(self, name, x, y, hello, hitpoints):
         match Field.matrix[x][y]:
             case None:
-                if name in cowsay.list_cows() or name == 'jgsbat':
+                if name in MONSTERS:
                     self.name = name
                     self.x = x
                     self.y = y

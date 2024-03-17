@@ -2,6 +2,60 @@ import cowsay
 import io
 import shlex
 import sys
+import cmd
+
+class CommandLine(cmd.Cmd):
+    prompt = '>>> '
+    intro = "<<< Welcome to Python-MUD 0.1.2 >>>"
+    
+    def do_default(self):
+        print("Invalid arguments")
+        
+    def do_up(self, com):
+        if len(com) != 1:
+            print('Invalid arguments')
+        else:
+            player.move(com[0])
+
+    def do_down(self, com):
+        if len(com) != 1:
+            print('Invalid arguments')
+        else:
+            player.move(com[0])
+
+    def do_left(self, com):
+        if len(com) != 1:
+            print('Invalid arguments')
+        else:
+            player.move(com[0])
+
+    def do_right(self, com):
+        if len(com) != 1:
+            print('Invalid arguments')
+        else:
+            player.move(com[0])
+
+    def do_addmon(self, com):
+        if len(com) != 9 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
+            print('Invalid arguments')
+        else:
+            name = com[1]
+            x = com[com.index('coords') + 1]
+            y = com[com.index('coords') + 2]
+            phrase = com[com.index('hello') + 1]
+            hp = com[com.index('hp') + 1]
+            if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9 and hp.isdigit():
+                x = int(x)
+                y = int(y)
+                hp = int(hp)
+                try:
+                    tmp = Monster()
+                    tmp.addmonster(x, y, phrase, hp)
+                    field.matrix[x][y] = tmp
+                except NameError:
+                    pass
+            else:
+                print('Invalid arguments') 
 
 class Field:
     matrix = [[None for i in range(10)] for j in range(10)]
@@ -73,44 +127,8 @@ class Monster:
                 self.hitpoints = hitpoints
                 print('Replaced the old monster')
 
-
-print("<<< Welcome to Python-MUD 0.1 >>>")
-field = Field()
-player = Player()
-while True:
-    try:
-        com = shlex.split(sys.stdin.readline())
-    except ValueError:
-        print('Invalid arguments')
-        break
-    except Exception:
-        break
-    match com[0]:
-        case "up" | "down" | "left" | "right":
-            if len(com) != 1:
-                print('Invalid arguments')
-            else:
-                player.move(com[0])
-        case "addmon":
-            if len(com) != 9 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
-                print('Invalid arguments')
-            else:
-                name = com[1]
-                x = com[com.index('coords') + 1]
-                y = com[com.index('coords') + 2]
-                phrase = com[com.index('hello') + 1]
-                hp = com[com.index('hp') + 1]
-                if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9 and hp.isdigit():
-                    x = int(x)
-                    y = int(y)
-                    hp = int(hp)
-                    try:
-                        tmp = Monster()
-                        tmp.addmonster(x, y, phrase, hp)
-                        field.matrix[x][y] = tmp
-                    except NameError:
-                        pass
-                else:
-                    print('Invalid arguments')
-        case _:
-            print('Invalid commands')
+if __name__ == '__main__':
+    field = Field()
+    player = Player()
+    
+   

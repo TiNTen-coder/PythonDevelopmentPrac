@@ -12,6 +12,8 @@ WEAPON_TOOLS = {
     'axe': 20
 }
 
+MONSTERS = set(cowsay.list_cows()) | set(['jgsbat'])
+
 class CommandLine(cmd.Cmd):
     prompt = '>>> '
     intro = "<<< Welcome to Python-MUD 0.1.2 >>>"
@@ -50,10 +52,10 @@ class CommandLine(cmd.Cmd):
             return True
         except Exception:
             return True
-        if len(args) == 2 and 'with' in args:
-            player.attack(args[1])
-        elif not args:
-            player.attack('sword')
+        if len(args) == 3 and 'with' in args:
+            player.attack(args[0], args[2])
+        elif len(args) == 1 and args[0] in MONSTERS:
+            player.attack(args[0], 'sword')
         else:
             print('Invalid arguments')
     
@@ -61,7 +63,9 @@ class CommandLine(cmd.Cmd):
         args = shlex.split(line[:begidx], False, False)
         if args[-1] == 'with':
             return [c for c in WEAPON_TOOLS if c.startswith(text)]
-
+        elif args[-1] == 'attack':
+            return [c for c in MONSTERS if c.startswith(text)]
+    
     def do_addmon(self, com):
         try:
             com = shlex.split(com)
@@ -143,12 +147,12 @@ class Player:
             else:
                 print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=Field.matrix[x][y].name))
 
-    def attack(self, weapon_name):
+    def attack(self, monster_name, weapon_name):
         if weapon_name not in WEAPON_TOOLS.keys():
             print('Unknown weapon')
             return
-        if Field.matrix[self.x][self.y] is None:
-            print('No monster here')
+        if Field.matrix[self.x][self.y].name != monster_name:
+            print(f'No {monster_name} here')
         else:
             print(f'Attacked {Field.matrix[self.x][self.y].name}, damage {min(WEAPON_TOOLS[weapon_name], Field.matrix[self.x][self.y].hitpoints)} hp')
             Field.matrix[self.x][self.y].hitpoints = max(Field.matrix[self.x][self.y].hitpoints - WEAPON_TOOLS[weapon_name], 0)

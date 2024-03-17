@@ -39,13 +39,14 @@ class CommandLine(cmd.Cmd):
             com = shlex.split(com)
         except ValueError:
             print('Invalid arguments')
-            break
+            return True
         except Exception:
-            break
+            return True
+        print(com)
         if len(com) != 8 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
             print('Invalid arguments')
         else:
-            name = com[1]
+            name = com[0]
             x = com[com.index('coords') + 1]
             y = com[com.index('coords') + 2]
             phrase = com[com.index('hello') + 1]
@@ -56,12 +57,13 @@ class CommandLine(cmd.Cmd):
                 hp = int(hp)
                 try:
                     tmp = Monster()
-                    tmp.addmonster(x, y, phrase, hp)
+                    tmp.addmonster(name, x, y, phrase, hp)
                     field.matrix[x][y] = tmp
-                except NameError:
+                except NameError: 
                     pass
             else:
-                print('Invalid arguments') 
+                print('Invalid arguments')
+        print(Field.matrix)
 
 class Field:
     matrix = [[None for i in range(10)] for j in range(10)]
@@ -104,7 +106,7 @@ class Player:
                 """))
                 print(cowsay.cowsay(Field.matrix[x][y].phrase, cowfile=custom_monster))
             else:
-                print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=name))
+                print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=Field.matrix[x][y].name))
 
 
 
@@ -115,7 +117,7 @@ class Monster:
     phrase = None
     hitpoints = None
 
-    def addmonster(self, x, y, hello, hitpoints):
+    def addmonster(self, name, x, y, hello, hitpoints):
         match Field.matrix[x][y]:
             case None:
                 if name in cowsay.list_cows() or name == 'jgsbat':

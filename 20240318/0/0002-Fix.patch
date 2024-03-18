@@ -1,0 +1,26 @@
+From 5330d0b1de4763dd75e0e52ca6d6aed2023af7f9 Mon Sep 17 00:00:00 2001
+From: Vyacheslav Kret <kretva@my.msu.ru>
+Date: Mon, 18 Mar 2024 13:15:48 +0300
+Subject: [PATCH 2/2] Fix
+
+---
+ 20240318/0/cal1 | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/20240318/0/cal1 b/20240318/0/cal1
+index 3105856..e3a037b 100644
+--- a/20240318/0/cal1
++++ b/20240318/0/cal1
+@@ -3,7 +3,7 @@ BOO!
+ вс пн вт ср чт пт сб  
+                 1  2  
+  3  4  5  6  7  8  9  
+-10 11 12 13 14 15 16  
+-17 18 19 20 21 22 23  
++10 41 12 13 14 15 16  
++17 58 19 20 21 22 23  
+ 24 25 26 27 28 29 30  
+ 31 32                   
+-- 
+2.39.2 (Apple Git-143)
+

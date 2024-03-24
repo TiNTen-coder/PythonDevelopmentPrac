@@ -35,15 +35,24 @@ async def parse_the_command(data, me):
                 if com:
                     await clients[me].put('Alert: Move commands dont support the positional arguments')
                 await player.move('right', me)
-            case 'attack':
+            case 'move':
                 try:
-                    args = shlex.split(data[1])
-                    print(args)
+                    x, y = shlex.split(data[1])
+                    x = int(x)
+                    y = int(y)
                 except ValueError:
                     await clients[me].put('Invalid arguments')
                     return True
-                except Exception as E:
-                    print(E)
+                except Exception:
+                    return True
+                await player.move({'custom_flag': (x, y)}, me)
+            case 'attack':
+                try:
+                    args = shlex.split(data[1])
+                except ValueError:
+                    await clients[me].put('Invalid arguments')
+                    return True
+                except Exception:
                     return True
                 if len(args) == 3 and 'with' in args:
                     await player.attack(args[0], args[2], me)
@@ -101,6 +110,11 @@ class Player:
                 self.x = (self.x - 1) % 10
             case "right":
                 self.x = (self.x + 1) % 10
+            case _:
+                if type(flag) == dict and 'custom_flag' in flag:
+                    self.x = (self.x + flag['custom_flag'][0]) % 10
+                    self.y = (self.y + flag['custom_flag'][1]) % 10
+                
         await clients[me].put(f'Moved to ({self.x}, {self.y})')
         await self.encounter(self.x, self.y, me)
 
@@ -200,5 +214,4 @@ if __name__ == '__main__':
         readline.parse_and_bind("bind ^I rl_complete")
     else:
         readline.parse_and_bind("tab: complete")
-    #CommandLine().cmdloop()
     asyncio.run(main())

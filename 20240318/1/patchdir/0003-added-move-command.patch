@@ -1,0 +1,62 @@
+From 484da8e01703d5be4a9ef3c2e23c65593af3897e Mon Sep 17 00:00:00 2001
+From: Vyacheslav Kret <kretva@my.msu.ru>
+Date: Sun, 24 Mar 2024 19:51:23 +0300
+Subject: [PATCH 3/3] added move command
+
+---
+ 20240318/1/prog.py | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/20240318/1/prog.py b/20240318/1/prog.py
+index 94882a2..a88bba3 100644
+--- a/20240318/1/prog.py
++++ b/20240318/1/prog.py
+@@ -35,15 +35,24 @@ async def parse_the_command(data, me):
+                 if com:
+                     await clients[me].put('Alert: Move commands dont support the positional arguments')
+                 await player.move('right', me)
++            case 'move':
++                try:
++                    x, y = shlex.split(data[1])
++                    x = int(x)
++                    y = int(y)
++                except ValueError:
++                    await clients[me].put('Invalid arguments')
++                    return True
++                except Exception:
++                    return True
++                await player.move({'custom_flag': (x, y)}, me)
+             case 'attack':
+                 try:
+                     args = shlex.split(data[1])
+-                    print(args)
+                 except ValueError:
+                     await clients[me].put('Invalid arguments')
+                     return True
+-                except Exception as E:
+-                    print(E)
++                except Exception:
+                     return True
+                 if len(args) == 3 and 'with' in args:
+                     await player.attack(args[0], args[2], me)
+@@ -101,6 +110,11 @@ class Player:
+                 self.x = (self.x - 1) % 10
+             case "right":
+                 self.x = (self.x + 1) % 10
++            case _:
++                if type(flag) == dict and 'custom_flag' in flag:
++                    self.x = (self.x + flag['custom_flag'][0]) % 10
++                    self.y = (self.y + flag['custom_flag'][1]) % 10
++                
+         await clients[me].put(f'Moved to ({self.x}, {self.y})')
+         await self.encounter(self.x, self.y, me)
+ 
+@@ -200,5 +214,4 @@ if __name__ == '__main__':
+         readline.parse_and_bind("bind ^I rl_complete")
+     else:
+         readline.parse_and_bind("tab: complete")
+-    #CommandLine().cmdloop()
+     asyncio.run(main())
+-- 
+2.39.2 (Apple Git-143)
+

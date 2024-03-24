@@ -2,107 +2,86 @@ import cowsay
 import io
 import shlex
 import sys
-import cmd
+#import cmd
 import readline
 import rlcompleter
+import asyncio
 
 WEAPON_TOOLS = {
     'sword': 10,
     'spear': 15,
     'axe': 20
 }
-
+clients = {}
 MONSTERS = set(cowsay.list_cows()) | set(['jgsbat'])
 
-class CommandLine(cmd.Cmd):
-    prompt = '>>> '
-    intro = "<<< Welcome to Python-MUD 0.1.2 >>>"
-    
-    def do_default(self):
-        print("Invalid arguments")
-    
-    def do_EOF(self, args):
-        return True
-
-    def do_up(self, com):
-        if com:
-            print('Alert: Move commands dont support the positional arguments')
-        player.move('up')
-
-    def do_down(self, com):
-        if com:
-            print('Alert: Move commands dont support the positional arguments')
-        player.move('down')
-
-    def do_left(self, com):
-        if com:
-            print('Alert: Move commands dont support the positional arguments')
-        player.move('left')
-
-    def do_right(self, com):
-        if com:
-            print('Alert: Move commands dont support the positional arguments')
-        player.move('right')
-    
-    def do_attack(self, args):
-        try:
-            args = shlex.split(args)
-        except ValueError:
-            print('Invalid arguments')
-            return True
-        except Exception:
-            return True
-        if len(args) == 3 and 'with' in args:
-            player.attack(args[0], args[2])
-        elif len(args) == 1 and args[0] in MONSTERS:
-            player.attack(args[0], 'sword')
-        else:
-            print('Invalid arguments')
-    
-    def complete_attack(self, text, line, begidx, endidx):
-        args = shlex.split(line[:begidx], False, False)
-        if args[-1] == 'with':
-            return [c for c in WEAPON_TOOLS if c.startswith(text)]
-        elif args[-1] == 'attack':
-            return [c for c in MONSTERS if c.startswith(text)]
-    
-    def do_addmon(self, com):
-        try:
-            com = shlex.split(com)
-        except ValueError:
-            print('Invalid arguments')
-            return True
-        except Exception:
-            return True
-        if len(com) != 8 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
-            print('Invalid arguments')
-        else:
-            name = com[0]
-            x = com[com.index('coords') + 1]
-            y = com[com.index('coords') + 2]
-            phrase = com[com.index('hello') + 1]
-            hp = com[com.index('hp') + 1]
-            if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9 and hp.isdigit():
-                x = int(x)
-                y = int(y)
-                hp = int(hp)
+async def parse_the_command(data, me):
+    if data:
+        com = data[0]
+        match com:
+            case 'up':
+                if com:
+                    await clients[me].put('Alert: Move commands dont support the positional arguments')
+                await player.move('up', me)
+            case 'down':
+                if com:
+                    await clients[me].put('Alert: Move commands dont support the positional arguments')
+                await player.move('down', me)
+            case 'left':
+                if com:
+                    await clients[me].put('Alert: Move commands dont support the positional arguments')
+                await player.move('left', me)
+            case 'right':       
+                if com:
+                    await clients[me].put('Alert: Move commands dont support the positional arguments')
+                await player.move('right', me)
+            case 'attack':
                 try:
-                    tmp = Monster()
-                    tmp.addmonster(name, x, y, phrase, hp)
-                    field.matrix[x][y] = tmp
-                except NameError: 
-                    pass
-            else:
-                print('Invalid arguments')
-    
-    def complete_addmon(self, text, line, begidx, endidx):
-        args = shlex.split(line[:begidx])
-        if args[-1] == 'addmon':
-            return [c for c in MONSTERS if c.startswith(text)]
-        elif args[-1] in MONSTERS:
-            return [c for c in ['coords', 'hello', 'hp'] if c.startswith(text)]
-        elif args[-1] == 'coords':
-            return [c for c in map(lambda x: str(x), range(10)) if c.startswith(text)]
+                    args = shlex.split(data[1])
+                    print(args)
+                except ValueError:
+                    await clients[me].put('Invalid arguments')
+                    return True
+                except Exception as E:
+                    print(E)
+                    return True
+                if len(args) == 3 and 'with' in args:
+                    await player.attack(args[0], args[2], me)
+                elif len(args) == 1 and args[0] in MONSTERS:
+                    await player.attack(args[0], 'sword', me)
+                else:
+                    await clients[me].put('Invalid arguments')
+            case 'addmon':   
+                try:
+                    com = shlex.split(data[1])
+                except ValueError:
+                    await clients[me].put('Invalid arguments')
+                    return True
+                except Exception:
+                    return True
+                if len(com) != 8 or 'coords' not in com or 'hello' not in com or 'hp' not in com:
+                    await clients[me].put('Invalid arguments')
+                else:
+                    name = com[0]
+                    x = com[com.index('coords') + 1]
+                    y = com[com.index('coords') + 2]
+                    phrase = com[com.index('hello') + 1]
+                    hp = com[com.index('hp') + 1]
+                    if x.isdigit() and y.isdigit() and 0 <= int(x) <= 9 and 0 <= int(y) <= 9 and hp.isdigit():
+                        x = int(x)
+                        y = int(y)
+                        hp = int(hp)
+                        try:
+                            tmp = Monster()
+                            await tmp.addmonster(name, x, y, phrase, hp, me)
+                            field.matrix[x][y] = tmp
+                        except NameError: 
+                            pass
+                    else:
+                        await clietns[me].put('Invalid arguments')
+            case _:
+                await clients[me].put('Invalid arguments')
+
 
 class Field:
     matrix = [[None for i in range(10)] for j in range(10)]
@@ -112,7 +91,7 @@ class Player:
     x = 0
     y = 0
     
-    def move(self, flag):
+    async def move(self, flag, me):
         match flag:
             case "up":
                 self.y = (self.y - 1) % 10
@@ -122,10 +101,10 @@ class Player:
                 self.x = (self.x - 1) % 10
             case "right":
                 self.x = (self.x + 1) % 10
-        print(f'Moved to ({self.x}, {self.y})')
-        self.encounter(self.x, self.y)
+        await clients[me].put(f'Moved to ({self.x}, {self.y})')
+        await self.encounter(self.x, self.y, me)
 
-    def encounter(self, x, y):
+    async def encounter(self, x, y, me):
         if Field.matrix[x][y] is not None:
             if Field.matrix[x][y].name == 'jgsbat':
                 custom_monster = cowsay.read_dot_cow(io.StringIO("""
@@ -143,24 +122,24 @@ class Player:
                          (((""`  `"")))
                 EOC
                 """))
-                print(cowsay.cowsay(Field.matrix[x][y].phrase, cowfile=custom_monster))
+                await clients[me].put(cowsay.cowsay(Field.matrix[x][y].phrase, cowfile=custom_monster))
             else:
-                print(cowsay.cowsay(Field.matrix[x][y].phrase, cow=Field.matrix[x][y].name))
+                await clients[me].put(cowsay.cowsay(Field.matrix[x][y].phrase, cow=Field.matrix[x][y].name))
 
-    def attack(self, monster_name, weapon_name):
+    async def attack(self, monster_name, weapon_name, me):
         if weapon_name not in WEAPON_TOOLS.keys():
-            print('Unknown weapon')
+            await clients[me].put('Unknown weapon')
             return
         if Field.matrix[self.x][self.y].name != monster_name:
-            print(f'No {monster_name} here')
+            await clients[me].put(f'No {monster_name} here')
         else:
-            print(f'Attacked {Field.matrix[self.x][self.y].name}, damage {min(WEAPON_TOOLS[weapon_name], Field.matrix[self.x][self.y].hitpoints)} hp')
+            await clients[me].put(f'Attacked {Field.matrix[self.x][self.y].name}, damage {min(WEAPON_TOOLS[weapon_name], Field.matrix[self.x][self.y].hitpoints)} hp')
             Field.matrix[self.x][self.y].hitpoints = max(Field.matrix[self.x][self.y].hitpoints - WEAPON_TOOLS[weapon_name], 0)
             if not Field.matrix[self.x][self.y].hitpoints:
-                print(f'{Field.matrix[self.x][self.y].name} died')
+                await clients[me].put(f'{Field.matrix[self.x][self.y].name} died')
                 Field.matrix[self.x][self.y] = None
             else:
-                print(f'{Field.matrix[self.x][self.y].name} now has {Field.matrix[self.x][self.y].hitpoints}')
+                await clients[me].put(f'{Field.matrix[self.x][self.y].name} now has {Field.matrix[self.x][self.y].hitpoints}')
 
 class Monster:
     name = None
@@ -169,7 +148,7 @@ class Monster:
     phrase = None
     hitpoints = None
 
-    def addmonster(self, name, x, y, hello, hitpoints):
+    async def addmonster(self, name, x, y, hello, hitpoints, me):
         match Field.matrix[x][y]:
             case None:
                 if name in MONSTERS:
@@ -178,14 +157,41 @@ class Monster:
                     self.y = y
                     self.phrase = hello
                     self.hitpoints = hitpoints
-                    print(f'Added monster to ({x}, {y}) saying {hello}')
+                    await clients[me].put(f'Added monster to ({x}, {y}) saying {hello}')
                 else:
-                    print('Cannot add unknown monster')
+                    await clients[me].put('Cannot add unknown monster')
                     raise NameError
             case _:
                 self.phrase = hello
                 self.hitpoints = hitpoints
-                print('Replaced the old monster')
+                await clients[me].put('Replaced the old monster')
+
+async def chat(reader, writer):
+    me = "{}:{}".format(*writer.get_extra_info('peername'))
+    print(me)
+    clients[me] = asyncio.Queue()
+    send = asyncio.create_task(reader.readline())
+    receive = asyncio.create_task(clients[me].get())
+    while not reader.at_eof():
+        done, pending = await asyncio.wait([send, receive], return_when=asyncio.FIRST_COMPLETED)
+        for q in done:
+            if q is send:
+                send = asyncio.create_task(reader.readline())
+                data = q.result().decode().strip().split(maxsplit=1)
+                answer = await parse_the_command(data, me)
+            elif q is receive:
+                receive = asyncio.create_task(clients[me].get())
+                writer.write(f"{q.result()}\n".encode())
+                await writer.drain()
+        if answer:
+            break
+    writer.close()
+    await writer.wait_closed()
+
+async def main():
+    server = await asyncio.start_server(chat, '0.0.0.0', 1337)
+    async with server:
+        await server.serve_forever()
 
 if __name__ == '__main__':
     field = Field()
@@ -194,5 +200,5 @@ if __name__ == '__main__':
         readline.parse_and_bind("bind ^I rl_complete")
     else:
         readline.parse_and_bind("tab: complete")
-    CommandLine().cmdloop()
-   
+    #CommandLine().cmdloop()
+    asyncio.run(main())
